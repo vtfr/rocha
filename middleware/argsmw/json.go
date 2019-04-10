@@ -1,4 +1,3 @@
-// Package argsmw
 package argsmw
 
 import (
@@ -8,34 +7,35 @@ import (
 	"github.com/vtfr/rocha"
 )
 
-type jsondef struct {
-	key   string
-	model reflect.Type
-}
-
-// JSON parses a JSON encoded argument to a specific class and stores the
-// parsed value at the given key
-func JSON(key string, value interface{}) Definition {
-	if reflect.TypeOf(value).Kind() != reflect.Ptr {
+// JSON is a JSON parser which receives a base structure and parses a
+// argument according to it's format.
+//
+//     r.Handler(handler, argsmw.Arguments(argsmw.JSON("value", &Request{})))
+//
+// And, in the handler:
+//
+//     func handler(c rocha.Context) pb.Response {
+//         request := c.Get("value").(Request)
+//     }
+func JSON(key string, model interface{}) Definition {
+	// verifies if is a pointer
+	if reflect.TypeOf(model).Kind() != reflect.Ptr {
 		panic("argwm.JSON: value must be a pointer to a struct")
 	}
 
-	return &jsondef{key, reflect.ValueOf(value).Elem().Type()}
-}
+	// stores the data type
+	modelType := reflect.ValueOf(model).Elem().Type()
 
-// Key returns in which key the parsed JSON element will be stored
-func (j *jsondef) Key() string { return j.key }
+	return func(c rocha.Context, arg string) error {
+		// clones the data by it's type
+		value := reflect.New(modelType).Interface()
 
-// Handle parses the JSON
-func (j *jsondef) Handle(c rocha.Context, arg string) error {
-	value := reflect.New(j.model).Interface()
+		// parses JSON
+		if err := json.Unmarshal([]byte(arg), &value); err != nil {
+			return err
+		}
 
-	// attempt to unmarshal, else return the error
-	if err := json.Unmarshal([]byte(arg), &value); err != nil {
-		// TODO(vtfr): wrap error
-		return err
+		c.Set(key, value)
+		return nil
 	}
-
-	c.Set(j.key, value)
-	return nil
 }

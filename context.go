@@ -5,13 +5,14 @@ import (
 )
 
 // Context contains all necessary functions for interacting with the underlying
-// blockchain and a simple key-value store for middleware/application usage
+// blockchain infrastructure and a simple key-value store for
+// middleware/application internal usage
 type Context interface {
-	// Method returns this method's string name
-	Method() string
+	// Method returns the method's name
+	Method() (method string)
 
-	// Args returns the chaincode original arguments
-	Args() []string
+	// Args returns the sent arguments
+	Args() (args []string)
 
 	// Stub returns the internal ChaincodeStub for this context
 	Stub() shim.ChaincodeStubInterface
@@ -20,13 +21,19 @@ type Context interface {
 	Set(key string, value interface{})
 
 	// Get returns a value in the current context
-	Get(key string) interface{}
+	Get(key string) (value interface{}, exists bool)
 
-	// GetString returns a string value in the current context
-	GetString(key string) string
+	// Value returns a value stored in the context like Get, but does no
+	// checking if the value actually exists
+	Value(key string) (value interface{})
 
-	// GetInt returns a integer value in the current context
-	GetInt(key string) int
+	// String returns a value stored in the context casted to a string.
+	// if no value is found, a empty string is returned
+	String(key string) (value string)
+
+	// Int returns a value stored in the context casted to a int. If no
+	// value is found, a zero int is returned
+	Int(key string) (value int)
 }
 
 // context is the default rocha.Context implementation
@@ -47,31 +54,31 @@ func NewContext(stub shim.ChaincodeStubInterface, method string, args []string) 
 	}
 }
 
-// Method returns this method's string name
 func (c *context) Method() string { return c.method }
 
-// Args returns the chaincode original arguments
 func (c *context) Args() []string { return c.args }
 
-// Stub returns the chaincode's shim.ChaincodeStubInterface
 func (c *context) Stub() shim.ChaincodeStubInterface { return c.stub }
 
-// Set stores a value in the current context
 func (c *context) Set(key string, value interface{}) {
 	c.data[key] = value
 }
 
-// Get returns a value in the current context
-func (c *context) Get(key string) interface{} {
+func (c *context) Get(key string) (value interface{}, exists bool) {
+	value, exists = c.data[key]
+	return
+}
+
+func (c *context) Value(key string) interface{} {
 	return c.data[key]
 }
 
-// GetString returns a string value in the current context
-func (c *context) GetString(key string) string {
-	return c.Get(key).(string)
+func (c *context) String(key string) string {
+	value, _ := c.data[key].(string)
+	return value
 }
 
-// GetInt returns a integer value in the current context
-func (c *context) GetInt(key string) int {
-	return c.Get(key).(int)
+func (c *context) Int(key string) int {
+	value, _ := c.data[key].(int)
+	return value
 }

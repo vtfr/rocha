@@ -1,8 +1,7 @@
-// Package argsmw
+// Package argsmw is a chaincode argument parser and validator middleware
 package argsmw
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -10,24 +9,15 @@ import (
 	"github.com/vtfr/rocha"
 )
 
-// Definition is a argument definition containg a Key in which the argument
-// will be stored and a Handle function for parsing the argument
-type Definition interface {
-	// Key returns the Context.Key in which this definition will store the
-	// parsed value
-	Key() string
-
-	// Handle handles the argument
-	Handle(rocha.Context, string) error
-}
-
-// ErrInvalidArgumentCount is returned when a invalid argument is sent to a
-// Method
-var ErrInvalidArgumentCount = errors.New("invalid argument count")
+// Definition is a function which parses a chaincode argument at a given
+// position and stores it's parsed value in a context key, if valid.
+// Else, returns a error which will be returned to the Arguments middleware
+// for further processing
+type Definition func(c rocha.Context, arg string) error
 
 // Arguments middleware is a argument parsing middleware which receives a set
-// of argument definitions and parse them, saving their parsed values to their
-// respective keys
+// of argument definitions use them to parse the chaincode arguments. The
+// parsed argument will be stored in their respective definition keys
 func Arguments(defs ...Definition) rocha.Middleware {
 	return func(next rocha.Handler) rocha.Handler {
 		return func(c rocha.Context) pb.Response {
@@ -37,13 +27,13 @@ func Arguments(defs ...Definition) rocha.Middleware {
 			// verify if they are the same length
 			if len(args) != len(defs) {
 				return shim.Error(
-					fmt.Sprintf("Invalid argument count. Expected %d",
+					fmt.Sprintf("Invalid number of arguments. Expected %d",
 						len(defs)))
 			}
 
 			// for each argument, attempt to parse it's values
-			for i, def := range defs {
-				if err := def.Handle(c, args[i]); err != nil {
+			for i, d := range defs {
+				if err := d(c, args[i]); err != nil {
 					return shim.Error(
 						fmt.Sprintf("Invalid argument at position '%d': %s",
 							i, err.Error()))

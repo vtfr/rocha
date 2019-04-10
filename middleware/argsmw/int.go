@@ -6,22 +6,17 @@ import (
 	"github.com/vtfr/rocha"
 )
 
-// Int parses integers
-type Int string
+// Int is a integer parses which stores a integer in the given context
+// key. It also receives a base parameter which defines which base should
+// be used when decoding the integer
+func Int(key string, base int) Definition {
+	return func(c rocha.Context, arg string) error {
+		v, err := strconv.ParseInt(arg, base, 32)
+		if err != nil {
+			return err
+		}
 
-func (s Int) Key() string {
-	return string(s)
-}
-
-func (s Int) Handle(c rocha.Context, arg string) error {
-	v, err := strconv.ParseInt(arg, 10, 32)
-	if err != nil {
-		return err
+		c.Set(key, int(v))
+		return nil
 	}
-
-	c.Set(s.Key(), v)
-	return nil
 }
-
-// Compile-time verification if String implements Definition
-var _ Definition = Int("")

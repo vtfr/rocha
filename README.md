@@ -1,2 +1,5 @@
-# chaincode-router
-Chaincode Router is a Hyperledger Fabric Router with Middleware support
+# Rocha
+
+Rocha is Hyperledger Fabric Chaincode Router with Middleware capabilities
+
+Currently in development

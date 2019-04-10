@@ -8,3 +8,29 @@
 Rocha is Hyperledger Fabric Chaincode Router with Middleware capabilities
 
 Currently in development
+
+## Usage
+
+```go
+r := rocha.NewRouter().
+    // Route method `QueryUsers` to QueryUsers function
+    Handle("QueryUsers", QueryUsers)
+    // Route method `SaveUser` receiving a string and integer parameters
+    Handle("SaveUser", SaveUser,
+        argsmw.Arguments(
+            argsmw.String("name"),
+            argsmw.Int("age"))).
+
+func SaveUser(c rocha.Context) pb.Response {
+    name := c.String("name")
+    age := c.Int("age")
+
+    if age < 18 {
+        return shim.Error("can't register user")
+    }
+
+    stub := c.Stub()
+
+    // ...
+}
+```

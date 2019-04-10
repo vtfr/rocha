@@ -7,17 +7,26 @@ import (
 )
 
 var _ = Describe("Context", func() {
+	const METHOD = "method"
+	ARGS := []string{"a", "b"}
+
 	var context rocha.Context
 
 	BeforeEach(func() {
-		context = rocha.NewContext(nil, "method", []string{})
+		context = rocha.NewContext(nil, METHOD, ARGS)
+	})
+
+	It("Should return the stub related data", func() {
+		Expect(context.Stub()).To(BeNil())
+		Expect(context.Method()).To(Equal(METHOD))
+		Expect(context.Args()).To(Equal(ARGS))
 	})
 
 	It("Should store and retrieve values", func() {
-		PAYLOAD := interface{}("VALUE")
-		KEY := "key"
+		const KEY = "key"
+		const DATA = "VALUE"
 
-		context.Set(KEY, PAYLOAD)
-		Expect(context.Get(KEY)).To(Equal(PAYLOAD))
+		context.Set(KEY, DATA)
+		Expect(context.Get(KEY)).To(Equal(DATA))
 	})
 })

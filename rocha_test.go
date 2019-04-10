@@ -66,3 +66,11 @@ var _ = Describe("Router", func() {
 		Expect(middlewareCalled).To(Equal(1))
 	})
 })
+
+var _ = Describe("NotFoundHandler", func() {
+	It("should return a error message", func() {
+		context := rocha.NewContext(nil, "method", []string{})
+		res := rocha.NotFoundHandler(context)
+		Expect(int(res.Status)).To(Equal(shim.ERROR))
+	})
+})

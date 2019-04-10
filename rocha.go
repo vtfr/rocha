@@ -2,6 +2,8 @@
 package rocha
 
 import (
+	"fmt"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
@@ -18,7 +20,7 @@ func NewRouter() *Router {
 	return &Router{
 		routes:          make(map[string]Handler),
 		middlewares:     []Middleware{},
-		notFoundHandler: nil,
+		notFoundHandler: NotFoundHandler,
 	}
 }
 
@@ -28,7 +30,7 @@ func (r *Router) Handle(method string, handler Handler, middlewares ...Middlewar
 	return r
 }
 
-// NotFoundHandler sets a not found handler
+// NotFoundHandler sets a not found handler for this router
 func (r *Router) NotFoundHandler(handler Handler) *Router {
 	r.notFoundHandler = handler
 	return r
@@ -54,4 +56,10 @@ func (r *Router) Invoke(stub shim.ChaincodeStubInterface, method string, args []
 
 	// create context, call handler and return the result back to the user
 	return h(NewContext(stub, method, args))
+}
+
+// NotFoundHandler is a simple handler which returns a not found message with
+// the method's name
+func NotFoundHandler(c Context) pb.Response {
+	return shim.Error(fmt.Sprintf("method '%s' not found", c.Method()))
 }

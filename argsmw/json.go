@@ -15,7 +15,8 @@ import (
 // And, in the handler:
 //
 //     func handler(c rocha.Context) pb.Response {
-//         request := c.Get("value").(Request)
+//         request := c.Value("value").(*Request)
+//         ...
 //     }
 func JSON(key string, model interface{}) Definition {
 	// verifies if is a pointer

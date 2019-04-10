@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/vtfr/rocha"
-	"github.com/vtfr/rocha/middleware/argsmw"
+	"github.com/vtfr/rocha/argsmw"
 )
 
 var _ = Describe("Int", func() {
